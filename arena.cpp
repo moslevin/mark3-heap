@@ -11,11 +11,11 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 ===========================================================================*/
-/*!
+/**
 
-    \file   arena.cpp
+    @file   arena.cpp
 
-    \brief  Traditional heap memory allocator.
+    @brief  Traditional heap memory allocator.
 */
 
 #include <stdint.h>
@@ -31,18 +31,20 @@ See license.txt for more information
 #else
 #define DEBUG_PRINT(...)
 #endif
-namespace Mark3 {
+
+namespace Mark3
+{
 //---------------------------------------------------------------------------
 void Arena::Init(void* pvBuffer_, K_ADDR u32Size_, K_ADDR* au32Sizes_, uint8_t u8NumSizes_)
 {
     // Initialize the array of blocklists used in this Arena
-    ArenaList* pclList = (ArenaList*)pvBuffer_;
-    m_aclBlockList     = (ArenaList*)pvBuffer_;
-    m_u8LargestList    = u8NumSizes_ - 1;
+    auto* pclList   = reinterpret_cast<ArenaList*>(pvBuffer_);
+    m_aclBlockList  = reinterpret_cast<ArenaList*>(pvBuffer_);
+    m_u8LargestList = u8NumSizes_ - 1;
 
     DEBUG_PRINT("Initializing Arena @ 0x%X, %d bytes long\n", pvBuffer_, u32Size_);
     for (uint8_t i = 0; i < u8NumSizes_; i++) {
-        ArenaList* pclTemp = new ((void*)pclList) ArenaList();
+        auto* pclTemp = new ((void*)pclList) ArenaList();
 
         pclTemp->Init(au32Sizes_[i]);
         pclList++;
@@ -55,15 +57,15 @@ void Arena::Init(void* pvBuffer_, K_ADDR u32Size_, K_ADDR* au32Sizes_, uint8_t u
     // possible, until the whole contiguous buffer is completely
     // accounted for.
     uint32_t u32SizeRemain = u32Size_ - u32MetaSize;
-    K_ADDR   uPtr          = (K_ADDR)((uint32_t)pvBuffer_ + u32MetaSize);
+    auto     uPtr          = reinterpret_cast<K_ADDR>((K_ADDR)pvBuffer_ + (K_ADDR)u32MetaSize);
     while (u32SizeRemain >= (sizeof(HeapBlock) + au32Sizes_[0])) {
-        HeapBlock* pclBlock = new ((void*)uPtr) HeapBlock();
+        auto* pclBlock = new ((void*)uPtr) HeapBlock();
 
         DEBUG_PRINT(" Heap Blob - %d bytes remain\n", u32SizeRemain)
         DEBUG_PRINT(" Creating new Root block @ 0x%X\n", pclBlock);
 
         // Figure out the best size-list to accommodate the remaining space
-        uint8_t uList = ListForSize(u32SizeRemain - sizeof(HeapBlock));
+        auto uList = ListForSize(u32SizeRemain - sizeof(HeapBlock));
 
         if (uList == ARENA_EXHAUSTED) {
             DEBUG_PRINT("  Bigger than the largest arena available\n");
@@ -94,11 +96,7 @@ void* Arena::Allocate(K_ADDR usize_)
     DEBUG_PRINT("Request to allocate %d bytes\n", usize_);
     HeapBlock* pclRet;
 
-    uint8_t uList;
-
-    CS_ENTER();
-    uList = ListToSatisfy(usize_);
-    CS_EXIT();
+    auto uList = ListToSatisfy(usize_);
 
     if ((uList == ARENA_EXHAUSTED) || (uList == ARENA_FULL)) {
         DEBUG_PRINT(" Arena Exhausted, bailing\n");
@@ -108,7 +106,6 @@ void* Arena::Allocate(K_ADDR usize_)
         usize_ = m_aclBlockList[0].GetBlockSize();
     }
 
-    CS_ENTER();
     // Pop the first block from the arena list
     pclRet = m_aclBlockList[uList].PopBlock();
 
@@ -122,7 +119,7 @@ void* Arena::Allocate(K_ADDR usize_)
         DEBUG_PRINT("  Block size %d is large enough to split (min size: %d)\n",
                     pclRet->GetDataSize(),
                     m_aclBlockList[0].GetBlockSize());
-        HeapBlock* pclNew = pclRet->Split(usize_);
+        auto* pclNew = pclRet->Split(usize_);
 
         uList = ListForSize(pclNew->GetDataSize());
 
@@ -137,23 +134,21 @@ void* Arena::Allocate(K_ADDR usize_)
     // pointer.
     pclRet->SetCookie(HEAP_COOKIE_ALLOCATED);
 
-    CS_EXIT();
     return pclRet->GetDataPointer();
 }
 
 //---------------------------------------------------------------------------
 void Arena::Free(void* pvBlock_)
 {
-    K_ADDR     uBlockAddr = (K_ADDR)pvBlock_ - sizeof(HeapBlock);
-    HeapBlock* pclBlock   = (HeapBlock*)uBlockAddr;
-    HeapBlock* pclRight   = pclBlock->GetRightSibling();
+    auto       uBlockAddr = reinterpret_cast<K_ADDR>((K_ADDR)pvBlock_ - sizeof(HeapBlock));
+    auto*      pclBlock   = reinterpret_cast<HeapBlock*>(uBlockAddr);
+    auto*      pclRight   = pclBlock->GetRightSibling();
     HeapBlock* pclTemp;
 
     uint8_t uArenaIndex;
 
     // Block coalescing
     //   Merge right, absorb into current-node
-    CS_ENTER();
 
     pclTemp = pclRight;
     DEBUG_PRINT(" Data Pointer: 0x%X, Object 0x%X, Cookie %08X\n", pvBlock_, pclBlock, pclBlock->GetCookie());
@@ -168,11 +163,8 @@ void Arena::Free(void* pvBlock_)
         pclTemp = pclBlock->GetRightSibling();
     }
 
-    CS_EXIT();
-
-    CS_ENTER();
     // Merge left, absorb into left-node.
-    pclTemp  = pclBlock->GetLeftSibling();
+    pclTemp = pclBlock->GetLeftSibling();
     while ((pclTemp != 0) && (pclTemp->GetCookie() == HEAP_COOKIE_FREE)) {
         // Remove this free block from its currently allocated arena
         uArenaIndex = pclTemp->GetArenaIndex();
@@ -194,8 +186,6 @@ void Arena::Free(void* pvBlock_)
     }
     pclBlock->SetArenaIndex(uArenaIndex);
     m_aclBlockList[uArenaIndex].PushBlock(pclBlock);
-
-    CS_EXIT();
 }
 
 //---------------------------------------------------------------------------
@@ -203,7 +193,8 @@ uint8_t Arena::ListForSize(K_ADDR usize_)
 {
     if (usize_ < m_aclBlockList[0].GetBlockSize()) {
         return ARENA_FULL;
-    } if (usize_ > m_aclBlockList[m_u8LargestList].GetBlockSize()) {
+    }
+    if (usize_ > m_aclBlockList[m_u8LargestList].GetBlockSize()) {
         return ARENA_EXHAUSTED;
     }
 
@@ -233,6 +224,23 @@ uint8_t Arena::ListToSatisfy(K_ADDR usize_)
 }
 
 //---------------------------------------------------------------------------
+uint8_t Arena::GetListCount()
+{
+    return m_u8LargestList + 1;
+}
+
+//---------------------------------------------------------------------------
+bool Arena::GetListInfo(uint8_t u8ListIdx_, uint32_t* pu32BlockSize_, uint32_t* pu32BlockCount_)
+{
+    if (u8ListIdx_ > m_u8LargestList) {
+        return false;
+    }
+    *pu32BlockCount_ = m_aclBlockList[u8ListIdx_].GetBlockCount();
+    *pu32BlockSize_  = m_aclBlockList[u8ListIdx_].GetBlockSize();
+    return true;
+}
+
+//---------------------------------------------------------------------------
 void Arena::Print(void)
 {
 #if DEBUG
@@ -245,4 +253,4 @@ void Arena::Print(void)
     }
 #endif
 }
-} //namespace Mark3
+} // namespace Mark3

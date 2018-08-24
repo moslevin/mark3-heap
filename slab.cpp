@@ -11,19 +11,21 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 =========================================================================== */
-/*!
-    \file slab.cpp
-    \brief Slab allocator class implementation
+/**
+    @file slab.cpp
+    @brief Slab allocator class implementation
 */
 
 #include "slab.h"
 #include "mark3.h"
-namespace Mark3 {
+
+namespace Mark3
+{
 //---------------------------------------------------------------------------
 void SlabPage::InitPage(uint32_t u32PageSize_, uint32_t u32ObjSize_)
 {
     LinkListNode::ClearNode();
-    void* pvBlock = (void*)((uint32_t)this + sizeof(SlabPage));        
+    auto* pvBlock = reinterpret_cast<void*>((K_ADDR)this + sizeof(SlabPage));
     m_clAllocator.Init(pvBlock, u32PageSize_ - sizeof(SlabPage), u32ObjSize_);
 }
 
@@ -55,8 +57,8 @@ bool SlabPage::IsFull(void)
 void Slab::Init(uint32_t u32ObjSize_, slab_alloc_page_function_t pfAlloc_, slab_free_page_function_t pfFree_)
 {
     m_pfSlabAlloc = pfAlloc_;
-    m_pfSlabFree = pfFree_;
-    m_u32ObjSize = u32ObjSize_;
+    m_pfSlabFree  = pfFree_;
+    m_u32ObjSize  = u32ObjSize_;
     m_clFreeList.Init();
     m_clFullList.Init();
 }
@@ -65,7 +67,7 @@ void Slab::Init(uint32_t u32ObjSize_, slab_alloc_page_function_t pfAlloc_, slab_
 void* Slab::Alloc(void)
 {
     // Allocate from free page list
-    SlabPage* pclCurr = (SlabPage*)m_clFreeList.GetHead();
+    auto* pclCurr = reinterpret_cast<SlabPage*>(m_clFreeList.GetHead());
     if (!pclCurr) {
         pclCurr = AllocSlabPage();
         if (!pclCurr) {
@@ -83,8 +85,9 @@ void* Slab::Alloc(void)
 void Slab::Free(void* pvObj_)
 {
     // Get page from object data
-    bitmap_alloc_t *pstObj_ = (bitmap_alloc_t*)((uint32_t)pvObj_ - (sizeof(bitmap_alloc_t) - sizeof(K_WORD)));
-    SlabPage* pclPage = (SlabPage*)pstObj_->pvTag;
+    auto* pstObj_ = reinterpret_cast<bitmap_alloc_t*>((K_ADDR)pvObj_ - (sizeof(bitmap_alloc_t) - sizeof(K_WORD)));
+    auto* pclPage = reinterpret_cast<SlabPage*>(pstObj_->pvTag);
+
     if (pclPage->IsFull()) {
         MoveToFree(pclPage);
     }
@@ -100,15 +103,39 @@ void Slab::Free(void* pvObj_)
 SlabPage* Slab::AllocSlabPage(void)
 {
     uint32_t u32PageSize;
-    SlabPage* pclNewPage = (SlabPage*)m_pfSlabAlloc(&u32PageSize);
+    auto*    pclNewPage = reinterpret_cast<SlabPage*>(m_pfSlabAlloc(&u32PageSize));
     if (!pclNewPage) {
         return NULL;
     }
-    
+
     pclNewPage->InitPage(u32PageSize, m_u32ObjSize);
 
     m_clFreeList.Add(pclNewPage);
     return pclNewPage;
+}
+
+//---------------------------------------------------------------------------
+uint32_t Slab::GetFullPageCount()
+{
+    uint32_t count = 0;
+    auto*    node  = m_clFullList.GetHead();
+    while (node) {
+        count++;
+        node = node->GetNext();
+    }
+    return count;
+}
+
+//---------------------------------------------------------------------------
+uint32_t Slab::GetFreePageCount()
+{
+    uint32_t count = 0;
+    auto*    node  = m_clFreeList.GetHead();
+    while (node) {
+        count++;
+        node = node->GetNext();
+    }
+    return count;
 }
 
 //---------------------------------------------------------------------------
@@ -131,4 +158,4 @@ void Slab::MoveToFree(SlabPage* pclPage_)
     m_clFullList.Remove(pclPage_);
     m_clFreeList.Add(pclPage_);
 }
-} //namespace Mark3
+} // namespace Mark3

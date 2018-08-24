@@ -11,9 +11,9 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 =========================================================================== */
-/*!
-    \file bitmap_allocator.h
-    \brief Fixed block allocator using a 2-level bitmap structure to track
+/**
+    @file bitmap_allocator.h
+    @brief Fixed block allocator using a 2-level bitmap structure to track
            allocations.
 */
 #pragma once
@@ -21,13 +21,12 @@ See license.txt for more information
 #include "mark3.h"
 
 //---------------------------------------------------------------------------
-#define UINT32_SHIFT            (5)
-#define UINT32_BITS             (32)
-#define UINT32_ROUND_UP(bits)   (((uint32_t)(bits) + (UINT32_BITS - 1)) >> UINT32_SHIFT)
+#define UINT32_SHIFT (5)
+#define UINT32_BITS (32)
+#define UINT32_ROUND_UP(bits) (((uint32_t)(bits) + (UINT32_BITS - 1)) >> UINT32_SHIFT)
 
 namespace Mark3
 {
-
 //---------------------------------------------------------------------------
 /**
  * @brief The BitmapAllocator class
@@ -41,7 +40,6 @@ namespace Mark3
 class BitmapAllocator
 {
 public:
-
     /**
      * @brief Init
      *
@@ -63,7 +61,7 @@ public:
      * @return Pointer to a blob of memory, or NULL on out-of-memory
      */
     void* Allocate(void* pvTag_);
-    
+
     /**
      * @brief Free
      *
@@ -78,13 +76,13 @@ public:
      * @return Number of free elements in the allocator
      */
     uint32_t GetNumFree(void);
-    
+
     /**
      * @brief IsEmpty
      * @return true if there are no elements in-use.
      */
     bool IsEmpty(void);
-    
+
     /**
      * @brief IsFull
      * @return true if there are no free elements.
@@ -92,7 +90,6 @@ public:
     bool IsFull(void);
 
 private:
-
     /**
      * @brief CountLeadingZeros
      *
@@ -103,19 +100,19 @@ private:
      * @return number of leading zeros in the object.  Returns 32 if all bits are zero.
      */
     static uint8_t CountLeadingZeros(uint32_t u32Value_);
-    
+
     /**
      * @brief NextFreeIndex
      * @return Bit index of the next free allocation
      */
     uint32_t NextFreeIndex(void);
-    
+
     /**
      * @brief SetFree
      * @param u32Index_ Index of the bit to mark as free in the bitmap
      */
     void SetFree(uint32_t u32Index_);
-    
+
     /**
      * @brief SetAllocated
      * @param u32Index_ Idex of the bit to mark as allocated in the bitmap
@@ -132,20 +129,20 @@ private:
      */
     bool IsAllocated(uint32_t u32Index_);
 
-    uint32_t m_u32MapL1;
+    uint32_t  m_u32MapL1;
     uint32_t* m_pu32MapL2;
-    uint32_t m_u32NumElements;
-    uint32_t m_u32NumFree;
-    uint32_t m_u32ObjSize;
-    void* m_pvMemBlock;
+    uint32_t  m_u32NumElements;
+    uint32_t  m_u32NumFree;
+    uint32_t  m_u32ObjSize;
+    void*     m_pvMemBlock;
 };
 
 //---------------------------------------------------------------------------
 // Metadata structure attached to each allocation.
 typedef struct __attribute__((packed)) {
     BitmapAllocator* pclSource;
-    void* pvTag;
-    uint32_t u32Index;
-    K_WORD data[1];
+    void*            pvTag;
+    uint32_t         u32Index;
+    K_WORD           data[1];
 } bitmap_alloc_t;
-} //namespace Mark3
+} // namespace Mark3

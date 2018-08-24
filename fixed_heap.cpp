@@ -11,8 +11,8 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 ===========================================================================*/
-/*!
-    \file fixed_heap.cpp
+/**
+    @file fixed_heap.cpp
 
     Fixed-block-size memory management.  This allows a user to create heaps
     containing multiple lists, each list containing a linked-list of blocks
@@ -43,7 +43,8 @@ See license.txt for more information
 #include "kerneltypes.h"
 #include "fixed_heap.h"
 #include "threadport.h"
-namespace Mark3 {
+namespace Mark3
+{
 //---------------------------------------------------------------------------
 class BlockHeapNode : public LinkListNode
 {
@@ -59,16 +60,16 @@ void* BlockHeap::Create(void* pvHeap_, uint16_t u16Size_, uint16_t u16BlockSize_
 {
     uint16_t u16NodeCount = u16Size_ / (sizeof(BlockHeapNode) + u16BlockSize_);
 
-    K_ADDR adNode    = (K_ADDR)pvHeap_;
-    K_ADDR adMaxNode = (K_ADDR)((K_ADDR)pvHeap_ + (K_ADDR)u16Size_);
+    auto adNode    = reinterpret_cast<K_ADDR>(pvHeap_);
+    auto adMaxNode = reinterpret_cast<K_ADDR>((K_ADDR)pvHeap_ + (K_ADDR)u16Size_);
     m_clList.Init();
 
     // Create a heap (linked-list nodes + byte pool) in the middle of
     // the data blob
     for (uint16_t i = 0; i < u16NodeCount; i++) {
         // Create a pointer back to the source list.
-        BlockHeapNode* pclTemp = (BlockHeapNode*)adNode;
-        pclTemp->m_clHeap      = this;
+        auto* pclTemp     = reinterpret_cast<BlockHeapNode*>(adNode);
+        pclTemp->m_clHeap = this;
 
         // Add the node to the block list
         m_clList.Add((LinkListNode*)pclTemp);
@@ -90,7 +91,7 @@ void* BlockHeap::Create(void* pvHeap_, uint16_t u16Size_, uint16_t u16BlockSize_
 //---------------------------------------------------------------------------
 void* BlockHeap::Alloc()
 {
-    LinkListNode* pclNode = m_clList.GetHead();
+    auto* pclNode = m_clList.GetHead();
 
     // Return the first node from the head of the list
     if (pclNode != 0) {
@@ -98,7 +99,7 @@ void* BlockHeap::Alloc()
         m_u16BlocksFree--;
 
         // Account for block-management metadata
-        return (void*)((K_ADDR)pclNode + sizeof(BlockHeapNode));
+        return reinterpret_cast<void*>((K_ADDR)pclNode + sizeof(BlockHeapNode));
     }
 
     // Or null, if the heap is empty.
@@ -109,7 +110,7 @@ void* BlockHeap::Alloc()
 void BlockHeap::Free(void* pvData_)
 {
     // Compute the address of the original object (class metadata included)
-    LinkListNode* pclNode = (LinkListNode*)((K_ADDR)pvData_ - sizeof(BlockHeapNode));
+    auto* pclNode = reinterpret_cast<LinkListNode*>((K_ADDR)pvData_ - sizeof(BlockHeapNode));
 
     // Add the object back to the block data pool
     m_clList.Add(pclNode);
@@ -140,12 +141,10 @@ void* FixedHeap::Alloc(uint16_t u16Size_)
     // Go through all heaps, trying to find the smallest one that
     // has a free item to satisfy the allocation
     while (m_paclHeaps[i].m_u16BlockSize != 0) {
-        CS_ENTER();
         if ((m_paclHeaps[i].m_u16BlockSize >= u16Size_) && m_paclHeaps[i].m_clHeap.IsFree()) {
             // Found a match
             pvRet = m_paclHeaps[i].m_clHeap.Alloc();
         }
-        CS_EXIT();
 
         // Return an object if found
         if (pvRet != 0) {
@@ -163,9 +162,7 @@ void FixedHeap::Free(void* pvNode_)
 {
     // Compute the pointer to the block-heap this block belongs to, and
     // return it.
-    CS_ENTER();
-    BlockHeapNode* pclNode = (BlockHeapNode*)((K_ADDR)pvNode_ - sizeof(BlockHeapNode));
+    auto* pclNode = reinterpret_cast<BlockHeapNode*>((K_ADDR)pvNode_ - sizeof(BlockHeapNode));
     pclNode->m_clHeap->Free(pvNode_);
-    CS_EXIT();
 }
-} //namespace Mark3
+} // namespace Mark3
