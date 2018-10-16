@@ -139,9 +139,17 @@ void* Arena::Allocate(K_ADDR usize_)
 
 //---------------------------------------------------------------------------
 void Arena::Free(void* pvBlock_)
-{
+{    
+    if (pvBlock_ == nullptr) {
+        return;
+    }
     auto       uBlockAddr = reinterpret_cast<K_ADDR>((K_ADDR)pvBlock_ - sizeof(HeapBlock));
     auto*      pclBlock   = reinterpret_cast<HeapBlock*>(uBlockAddr);
+
+    if (pclBlock->GetCookie() == HEAP_COOKIE_FREE) {
+        return;
+    }
+
     auto*      pclRight   = pclBlock->GetRightSibling();
     HeapBlock* pclTemp;
 
@@ -199,7 +207,7 @@ uint8_t Arena::ListForSize(K_ADDR usize_)
     }
 
     for (uint8_t i = 0; i <= m_u8LargestList; i++) {
-        if (usize_ <= m_aclBlockList[i].GetBlockSize()) {
+        if (usize_ < m_aclBlockList[i].GetBlockSize()) {
             DEBUG_PRINT("   Size %d goes in List: %d\n", usize_, i - 1);
             return (i - 1);
         }

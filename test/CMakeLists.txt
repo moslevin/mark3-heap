@@ -41,3 +41,17 @@ target_link_libraries(ut_fixedblock.elf
     memutil
     heap
 )
+
+set(UT_SOURCES
+    ut_arena.cpp
+)
+
+mark3_add_executable(ut_arena ${UT_SOURCES})
+
+target_link_libraries(ut_arena.elf
+    ut_base
+    mark3
+    mark3c
+    memutil
+    heap
+)
