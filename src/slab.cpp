@@ -84,10 +84,17 @@ void* Slab::Alloc(void)
 //---------------------------------------------------------------------------
 void Slab::Free(void* pvObj_)
 {
+    if (!pvObj_) {
+        return;
+    }
+
     // Get page from object data
     auto* pstObj_ = reinterpret_cast<bitmap_alloc_t*>((K_ADDR)pvObj_ - (sizeof(bitmap_alloc_t) - sizeof(K_WORD)));
-    auto* pclPage = reinterpret_cast<SlabPage*>(pstObj_->pvTag);
+    if (pstObj_->pvTag == nullptr) {
+        return;
+    }
 
+    auto* pclPage = reinterpret_cast<SlabPage*>(pstObj_->pvTag);
     if (pclPage->IsFull()) {
         MoveToFree(pclPage);
     }
@@ -97,6 +104,8 @@ void Slab::Free(void* pvObj_)
     if (pclPage->IsEmpty()) {
         FreeSlabPage(pclPage);
     }
+
+    pstObj_->pvTag = nullptr;
 }
 
 //---------------------------------------------------------------------------

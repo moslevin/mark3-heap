@@ -72,9 +72,12 @@ void* BitmapAllocator::Allocate(void* pvTag_)
 //---------------------------------------------------------------------------
 void BitmapAllocator::Free(void* alloc)
 {
-    auto* pstAlloc = reinterpret_cast<bitmap_alloc_t*>((K_ADDR)alloc - (sizeof(bitmap_alloc_t) - sizeof(K_WORD)));
-    pstAlloc->pclSource->SetFree(pstAlloc->u32Index);
-    m_u32NumFree++;
+    auto* pstAlloc = reinterpret_cast<bitmap_alloc_t*>((K_ADDR)alloc - (sizeof(bitmap_alloc_t) - sizeof(K_WORD)));    
+
+    if (pstAlloc->pclSource->IsAllocated(pstAlloc->u32Index)) {
+        pstAlloc->pclSource->SetFree(pstAlloc->u32Index);
+        m_u32NumFree++;
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -156,8 +159,8 @@ bool BitmapAllocator::IsAllocated(uint32_t u32Index_)
     auto u32BitIndex  = u32Index_ & (UINT32_BITS - 1);
 
     if (m_pu32MapL2[u32WordIndex] & (1 << u32BitIndex)) {
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 } // namespace Mark3

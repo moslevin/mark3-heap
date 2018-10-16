@@ -35,24 +35,24 @@ public:
      *
      *  Create a single list heap in the blob of memory provided, with the
      *  selected heap size, and the selected number of blocks.  Will create
-     *  as many blocks as will fit in the u16Size_ parameter
+     *  as many blocks as will fit in the uSize_ parameter
      *
      *  @param pvHeap_ Pointer to the heap data to initialize
-     *  @param u16Size_ Size of the heap range in bytes
-     *  @param u16BlockSize_ Size of each heap block in bytes
+     *  @param uSize_ Size of the heap range in bytes
+     *  @param uBlockSize_ Size of each heap block in bytes
      *
      *  @return Pointer to the next heap element to initialize
      */
-    void* Create(void* pvHeap_, uint16_t u16Size_, uint16_t u16BlockSize_);
+    void* Create(void* pvHeap_, size_t uSize_, size_t uBlockSize_);
 
     /**
-     *  @brief Alloc
+     *  @brief Allocate
      *
      *  Allocate a block of memory from this heap
      *
      *  @return pointer to a block of memory, or 0 on failure
      */
-    void* Alloc();
+    void* Allocate();
 
     /**
      *  @brief Free
@@ -71,10 +71,10 @@ public:
      *
      *  @return true if the heap is not full, false if the heap is full
      */
-    bool IsFree() { return m_u16BlocksFree != 0; }
+    bool IsFree() { return m_uBlocksFree != 0; }
 
 protected:
-    uint16_t m_u16BlocksFree; //!< Number of blocks free in the heap
+    int m_uBlocksFree; //!< Number of blocks free in the heap
 
 private:
     DoubleLinkList m_clList; //!< Linked list used to manage the blocks
@@ -86,14 +86,10 @@ class FixedHeap;
 /**
     Heap configuration object
  */
-class HeapConfig
+struct HeapConfig
 {
-public:
-    uint16_t m_u16BlockSize;  //!< Block size in bytes
-    uint16_t m_u16BlockCount; //!< Number of blocks to create @ this size
-    friend class FixedHeap;
-
-protected:
+    size_t m_uBlockSize;  //!< Block size in bytes
+    size_t m_uBlockCount; //!< Number of blocks to create @ this size
     BlockHeap m_clHeap; //!< BlockHeap object used by the allocator
 };
 
@@ -122,17 +118,17 @@ public:
     void Create(void* pvHeap_, HeapConfig* pclHeapConfig_);
 
     /**
-     *  @brief Alloc
+     *  @brief Allocate
      *
      *  Allocate a blob of memory from the heap.  If no appropriately-sized
      *  data block is available, will return NULL.  Note, this API is thread-
      *  safe, and interrupt safe.
      *
-     *  @param u16Size_ Size (in bytes) to allocate from the heap
+     *  @param uSize_ Size (in bytes) to allocate from the heap
      *
      *  @return Pointer to a block of data allocated, or 0 on error.
      */
-    void* Alloc(uint16_t u16Size_);
+    void* Allocate(size_t uSize_);
 
     /**
      *  @brief Free

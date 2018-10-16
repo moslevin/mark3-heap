@@ -56,17 +56,17 @@ protected:
 };
 
 //---------------------------------------------------------------------------
-void* BlockHeap::Create(void* pvHeap_, uint16_t u16Size_, uint16_t u16BlockSize_)
+void* BlockHeap::Create(void* pvHeap_, size_t uSize_, size_t uBlockSize_)
 {
-    uint16_t u16NodeCount = u16Size_ / (sizeof(BlockHeapNode) + u16BlockSize_);
+    size_t uNodeCount = uSize_ / (sizeof(BlockHeapNode) + uBlockSize_);
 
     auto adNode    = reinterpret_cast<K_ADDR>(pvHeap_);
-    auto adMaxNode = reinterpret_cast<K_ADDR>((K_ADDR)pvHeap_ + (K_ADDR)u16Size_);
+    auto adMaxNode = reinterpret_cast<K_ADDR>((K_ADDR)pvHeap_ + (K_ADDR)uSize_);
     m_clList.Init();
 
     // Create a heap (linked-list nodes + byte pool) in the middle of
     // the data blob
-    for (uint16_t i = 0; i < u16NodeCount; i++) {
+    for (size_t i = 0; i < uNodeCount; i++) {
         // Create a pointer back to the source list.
         auto* pclTemp     = reinterpret_cast<BlockHeapNode*>(adNode);
         pclTemp->m_clHeap = this;
@@ -75,28 +75,28 @@ void* BlockHeap::Create(void* pvHeap_, uint16_t u16Size_, uint16_t u16BlockSize_
         m_clList.Add((LinkListNode*)pclTemp);
 
         // Move the pointer in the pool to point to the next block to allocate
-        adNode += (sizeof(BlockHeapNode) + u16BlockSize_);
+        adNode += (sizeof(BlockHeapNode) + uBlockSize_);
 
         // Bail if we would be going past the end of the allocated space...
         if (adNode >= adMaxNode) {
             break;
         }
     }
-    m_u16BlocksFree = u16NodeCount;
+    m_uBlocksFree = uNodeCount;
 
     // Return pointer to end of heap (usedd for heap-chaining)
     return (void*)adNode;
 }
 
 //---------------------------------------------------------------------------
-void* BlockHeap::Alloc()
+void* BlockHeap::Allocate()
 {
     auto* pclNode = m_clList.GetHead();
 
     // Return the first node from the head of the list
     if (pclNode != 0) {
         m_clList.Remove(pclNode);
-        m_u16BlocksFree--;
+        m_uBlocksFree--;
 
         // Account for block-management metadata
         return reinterpret_cast<void*>((K_ADDR)pclNode + sizeof(BlockHeapNode));
@@ -114,36 +114,36 @@ void BlockHeap::Free(void* pvData_)
 
     // Add the object back to the block data pool
     m_clList.Add(pclNode);
-    m_u16BlocksFree++;
+    m_uBlocksFree++;
 }
 
 //---------------------------------------------------------------------------
 void FixedHeap::Create(void* pvHeap_, HeapConfig* pclHeapConfig_)
 {
-    uint16_t i      = 0;
+    int i      = 0;
     void*    pvTemp = pvHeap_;
-    while (pclHeapConfig_[i].m_u16BlockSize != 0) {
+    while (pclHeapConfig_[i].m_uBlockSize != 0) {
         pvTemp = pclHeapConfig_[i].m_clHeap.Create(
             pvTemp,
-            ((pclHeapConfig_[i].m_u16BlockSize + sizeof(BlockHeapNode)) * pclHeapConfig_[i].m_u16BlockCount),
-            pclHeapConfig_[i].m_u16BlockSize);
+            ((pclHeapConfig_[i].m_uBlockSize + sizeof(BlockHeapNode)) * pclHeapConfig_[i].m_uBlockCount),
+            pclHeapConfig_[i].m_uBlockSize);
         i++;
     }
     m_paclHeaps = pclHeapConfig_;
 }
 
 //---------------------------------------------------------------------------
-void* FixedHeap::Alloc(uint16_t u16Size_)
+void* FixedHeap::Allocate(size_t uSize_)
 {
     void*    pvRet = 0;
-    uint16_t i     = 0;
+    int i     = 0;
 
     // Go through all heaps, trying to find the smallest one that
     // has a free item to satisfy the allocation
-    while (m_paclHeaps[i].m_u16BlockSize != 0) {
-        if ((m_paclHeaps[i].m_u16BlockSize >= u16Size_) && m_paclHeaps[i].m_clHeap.IsFree()) {
+    while (m_paclHeaps[i].m_uBlockSize != 0) {
+        if ((m_paclHeaps[i].m_uBlockSize >= uSize_) && m_paclHeaps[i].m_clHeap.IsFree()) {
             // Found a match
-            pvRet = m_paclHeaps[i].m_clHeap.Alloc();
+            pvRet = m_paclHeaps[i].m_clHeap.Allocate();
         }
 
         // Return an object if found
