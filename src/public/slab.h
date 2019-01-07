@@ -60,7 +60,7 @@ public:
      *
      * @param pvTag_ User-provided tag pointer, used to assign context to an
      * allocated object.
-     * @return NULL if no page is exhausted, pointer to a user-accessible memory
+     * @return nullptr if no page is exhausted, pointer to a user-accessible memory
      * blob on success.
      */
     void* Alloc(void* pvTag_);
@@ -119,7 +119,7 @@ public:
      * Allocate an element from the slab, returning a user-accessible
      * pointer to a memory blob.
      *
-     * @return NULL on error/out of memory, data-pointer otherwise.
+     * @return nullptr on error/out of memory, data-pointer otherwise.
      */
     void* Alloc(void);
 
@@ -144,7 +144,7 @@ private:
      *
      * Allocate a new page to be managed by the slab allocator
      *
-     * @return Newly-allocated slab page, or NULL if out-of-memory
+     * @return Newly-allocated slab page, or nullptr if out-of-memory
      */
     SlabPage* AllocSlabPage(void);
 

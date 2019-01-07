@@ -58,7 +58,7 @@ public:
      * Allocate a single fixed-size block from the allocator
      *
      * @param pvTag_ User-supplied metadata to assign to the allocated object
-     * @return Pointer to a blob of memory, or NULL on out-of-memory
+     * @return Pointer to a blob of memory, or nullptr on out-of-memory
      */
     void* Allocate(void* pvTag_);
 

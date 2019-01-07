@@ -71,7 +71,7 @@ void* Slab::Alloc(void)
     if (!pclCurr) {
         pclCurr = AllocSlabPage();
         if (!pclCurr) {
-            return NULL;
+            return nullptr;
         }
     }
     void* pvRC = pclCurr->Alloc(pclCurr);
@@ -114,7 +114,7 @@ SlabPage* Slab::AllocSlabPage(void)
     uint32_t u32PageSize;
     auto*    pclNewPage = reinterpret_cast<SlabPage*>(m_pfSlabAlloc(&u32PageSize));
     if (!pclNewPage) {
-        return NULL;
+        return nullptr;
     }
 
     pclNewPage->InitPage(u32PageSize, m_u32ObjSize);

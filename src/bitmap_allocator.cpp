@@ -52,7 +52,7 @@ void BitmapAllocator::Init(void* pvMemBlock_, uint32_t u32BlockSize_, uint32_t u
 void* BitmapAllocator::Allocate(void* pvTag_)
 {
     if (!m_u32NumFree) {
-        return NULL;
+        return nullptr;
     }
 
     m_u32NumFree--;

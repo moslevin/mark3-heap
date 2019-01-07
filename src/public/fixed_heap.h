@@ -121,7 +121,7 @@ public:
      *  @brief Allocate
      *
      *  Allocate a blob of memory from the heap.  If no appropriately-sized
-     *  data block is available, will return NULL.  Note, this API is thread-
+     *  data block is available, will return nullptr.  Note, this API is thread-
      *  safe, and interrupt safe.
      *
      *  @param uSize_ Size (in bytes) to allocate from the heap
