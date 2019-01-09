@@ -187,7 +187,6 @@ TEST(ut_slab_alloc_free_pass)
             EXPECT_TRUE(pAllocs[i] != nullptr);
         }
         EXPECT_TRUE(iut->Alloc() == nullptr);
-        auto usedPages = iut->GetFullPageCount();
 
         // No partially-allocated pages left at exhaustion, multiple allocated pages
         EXPECT_TRUE(iut->GetFreePageCount() == 0);
