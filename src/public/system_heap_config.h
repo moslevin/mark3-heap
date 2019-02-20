@@ -11,10 +11,10 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 ===========================================================================*/
-/*!
-    \file "system_heap_config.h"
+/**
+    @file "system_heap_config.h"
 
-    \brief System heap configuration - defines the block sizes and counts
+    @brief System heap configuration - defines the block sizes and counts
            used to fulfill system/service allocations.
 */
 #pragma once
@@ -22,21 +22,21 @@ See license.txt for more information
 #include "kerneltypes.h"
 
 //---------------------------------------------------------------------------
-/*!
+/**
     Set this to "1" if you want the system heap to be built as part of this
     library.
 */
 #define USE_SYSTEM_HEAP (1)
 
 //---------------------------------------------------------------------------
-/*!
+/**
     Define the number of heap block sizes that we want to have attached to
     our system heap.
 */
 #define HEAP_NUM_SIZES (3)
 
 //---------------------------------------------------------------------------
-/*!
+/**
     Define the block sizes for each of the fixed-size blocks that will be
     managed by our heaps.  Must be defined in incrementing order.
 */
@@ -52,7 +52,7 @@ See license.txt for more information
 #define HEAP_BLOCK_SIZE_10 ((uint16_t)256)
 
 //---------------------------------------------------------------------------
-/*!
+/**
     Define the number of blocks in each bin, tailored for a particular
     application
 */

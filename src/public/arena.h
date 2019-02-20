@@ -11,11 +11,11 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 ===========================================================================*/
-/*!
+/**
 
-    \file   arena.cpp
+    @file   arena.cpp
 
-    \brief  Traditional heap memory allocator.
+    @brief  Traditional heap memory allocator.
 */
 #pragma once
 
@@ -29,10 +29,9 @@ See license.txt for more information
 
 namespace Mark3
 {
-
 //---------------------------------------------------------------------------
-/*!
- * \brief The Arena class
+/**
+ * @brief The Arena class
  *
  * This implements a heap composed of a blob of contiguous memory, managed
  * in a series of lists, where each list corresponds to a minimum allocation
@@ -45,64 +44,79 @@ namespace Mark3
 class Arena
 {
 public:
-    /*!
-     * \brief Init
+    /**
+     * @brief Init
      *
      * Initialize the arena prior to use.
      *
-     * \param pvBuffer_ Pointer to the memory blob to manage as a heap
+     * @param pvBuffer_ Pointer to the memory blob to manage as a heap
      *                  from this object.
-     * \param usize_ Size of the heap memory blob in bytes
-     * \return
+     * @param usize_ Size of the heap memory blob in bytes
+     * @return
      */
     void Init(void* pvBuffer_, K_ADDR u32Size_, K_ADDR* au32Sizes_, uint8_t u8NumSizes_);
 
-    /*!
-     * \brief Allocate
+    /**
+     * @brief Allocate
      *
      * Allocate a block of dynamic memory from the heap.
      *
-     * \param usize_ Size of object to allocate (in bytes)
-     * \return pointer to a chunk of dynamic memory, or 0 on exhaustion.
+     * @param usize_ Size of object to allocate (in bytes)
+     * @return pointer to a chunk of dynamic memory, or 0 on exhaustion.
      */
     void* Allocate(K_ADDR usize_);
 
-    /*!
-     * \brief Free
+    /**
+     * @brief Free
      *
      * Free the block of memory, returning it back to the pool for use.
      *
-     * \param pvBlock_ Pointer to the beginning of the object to be freed.
+     * @param pvBlock_ Pointer to the beginning of the object to be freed.
      */
     void Free(void* pvBlock_);
 
-    /*!
-     * \brief Print
+    /**
+     * @brief Print
      *
      * Show details about the print via standard output.
      */
     void Print(void);
 
+    /**
+     * @brief GetListCount
+     * @return number of block lists in the arena
+     */
+    uint8_t GetListCount();
+
+    /**
+     * @brief GetListInfo
+     * @param u8ListIdx_
+     * @param pu32BlockSize_
+     * @param pu32BlockCount_
+     * @return
+     */
+    bool GetListInfo(uint8_t u8ListIdx_, uint32_t* pu32BlockSize_, uint32_t* pu32BlockCount_);
+
 private:
-    /*!
-     * \brief ListForSize
+    /**
+     * @brief ListForSize
      *
      * Determine the arena list with the smallest allocation size
      * to handle an allocation of a given size.
      *
-     * \param usize_ Size of the object to check
-     * \return INdex representing the arena/arena-size
+     * @param usize_ Size of the object to check
+     * @return INdex representing the arena/arena-size
      */
     uint8_t ListForSize(K_ADDR usize_);
 
-    /*!
-     * \brief ListToSatisfy
+    /**
+     * @brief ListToSatisfy
      *
      * Determine the arena list that can satisfy the size request,
      * and has vacant objects available to be allocated.
      *
-     * \param usize_ Size of data to check
-     * \return Index representing the arena/arena-size, or 0xF...F on invalid
+     * @param usize_ Size of data to check
+     * @return Index representing the arena/arena-size, or 0xF...F on invalid
      */
     uint8_t ListToSatisfy(K_ADDR usize_);
 
@@ -110,4 +124,4 @@ private:
     ArenaList* m_aclBlockList;  //!< Arena linked-list data
     void*      m_pvData;        //!< Pointer to the raw memory blob managed by this object as a heap.
 };
-} //namespace Mark3
+} // namespace Mark3

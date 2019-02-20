@@ -11,9 +11,9 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 =========================================================================== */
-/*!
-    \file slab.h
-    \brief Slab allocator class implementation
+/**
+    @file slab.h
+    @brief Slab allocator class implementation
 */
 
 #pragma once
@@ -23,7 +23,6 @@ See license.txt for more information
 
 namespace Mark3
 {
-
 //---------------------------------------------------------------------------
 // Page allocation functions
 typedef void* (*slab_alloc_page_function_t)(uint32_t* pu32PageSize_);
@@ -61,7 +60,7 @@ public:
      *
      * @param pvTag_ User-provided tag pointer, used to assign context to an
      * allocated object.
-     * @return NULL if no page is exhausted, pointer to a user-accessible memory
+     * @return nullptr if no page is exhausted, pointer to a user-accessible memory
      * blob on success.
      */
     void* Alloc(void* pvTag_);
@@ -120,7 +119,7 @@ public:
      * Allocate an element from the slab, returning a user-accessible
      * pointer to a memory blob.
      *
-     * @return NULL on error/out of memory, data-pointer otherwise.
+     * @return nullptr on error/out of memory, data-pointer otherwise.
      */
     void* Alloc(void);
 
@@ -132,18 +131,23 @@ public:
      * @param pvObj_ Pointer to the object allocated from the slab
      */
     void Free(void* pvObj_);
-    
-private:
 
+    uint32_t GetObjSize() { return m_u32ObjSize; }
+
+    uint32_t GetFullPageCount();
+
+    uint32_t GetFreePageCount();
+
+private:
     /**
      * @brief AllocSlabPage
      *
      * Allocate a new page to be managed by the slab allocator
      *
-     * @return Newly-allocated slab page, or NULL if out-of-memory
+     * @return Newly-allocated slab page, or nullptr if out-of-memory
      */
     SlabPage* AllocSlabPage(void);
-    
+
     /**
      * @brief FreeSlabPage
      *
@@ -162,7 +166,7 @@ private:
      * @param pclPage_ Page to move to the full list
      */
     void MoveToFull(SlabPage* pclPage_);
-    
+
     /**
      * @brief MoveToFree
      *
@@ -174,11 +178,11 @@ private:
     void MoveToFree(SlabPage* pclPage_);
 
     uint32_t m_u32ObjSize;
-    
+
     DoubleLinkList m_clFreeList;
     DoubleLinkList m_clFullList;
-    
+
     slab_alloc_page_function_t m_pfSlabAlloc;
-    slab_free_page_function_t m_pfSlabFree;
+    slab_free_page_function_t  m_pfSlabFree;
 };
-} //namespace Mark3
+} // namespace Mark3

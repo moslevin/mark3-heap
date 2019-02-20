@@ -11,11 +11,11 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 ===========================================================================*/
-/*!
+/**
 
-    \file   heapblock.h
+    @file   heapblock.h
 
-    \brief  Metadata object used to manage a heap allocation
+    @brief  Metadata object used to manage a heap allocation
 */
 
 #pragma once
@@ -28,8 +28,10 @@ See license.txt for more information
 //---------------------------------------------------------------------------
 #if defined(AVR) || defined(MSP430)
 #define PTR_SIZE (2)
-#else
+#elif defined(ARM)
 #define PTR_SIZE (4)
+#elif defined(X64)
+#define PTR_SIZE (8)
 #endif
 
 //---------------------------------------------------------------------------
@@ -54,10 +56,9 @@ See license.txt for more information
 
 namespace Mark3
 {
-
 //---------------------------------------------------------------------------
-/*!
- * \brief The HeapBlock class
+/**
+ * @brief The HeapBlock class
  *
  * This class represents the metadata portion of any allocation, which
  * occurs before the data-portion of the allocation in memory.
@@ -85,8 +86,8 @@ class HeapBlock : public LinkListNode
 {
 public:
     void* operator new(size_t sz, void* pv) { return (HeapBlock*)pv; };
-    /*!
-     * \brief RootInit
+    /**
+     * @brief RootInit
      *
      * Initialize this object as a "root" block.  A root block is a single
      * chunk of memory that can be split into any number of smaller blocks,
@@ -100,27 +101,27 @@ public:
      * A heap may have many root blocks, depending on its configuration, and
      * the size of the buffer used for the heap.
      *
-     * \param usize_ Size of the memory blob (in bytes) that the HeapBlock
+     * @param usize_ Size of the memory blob (in bytes) that the HeapBlock
      *        object occupies.
      */
     void RootInit(K_ADDR usize_);
 
-    /*!
-     * \brief Split
+    /**
+     * @brief Split
      *
      * Split the current HeapBlock object into two objects.  The current
      * HeapBlock is resized to usize_ bytes of data, while any remaining
      * slack is allocated to a newly-created object.
      *
-     * \param usize_ Size (in bytes) to reserve for the current object,
+     * @param usize_ Size (in bytes) to reserve for the current object,
      *        with the remaining slack allocated towards
      *
-     * \return Newly created object.
+     * @return Newly created object.
      */
     HeapBlock* Split(K_ADDR usize_);
 
-    /*!
-     * \brief Coalesce
+    /**
+     * @brief Coalesce
      *
      * Attempt to join the current block with its neighboring right-side
      * block in contiguous memory.  This operation only succeeds has
@@ -129,75 +130,76 @@ public:
      */
     void Coalesce(void);
 
-    /*!
-     * \brief GetDataPointer
-     * \return Pointer to the block's data section
+    /**
+     * @brief GetDataPointer
+     * @return Pointer to the block's data section
      */
     void* GetDataPointer(void);
 
-    /*!
-     * \brief GetDataSize
-     * \return Size of the data-section of this block
+    /**
+     * @brief GetDataSize
+     * @return Size of the data-section of this block
      */
     K_ADDR GetDataSize(void);
 
-    /*!
-     * \brief GetBlockSize
-     * \return Size of the block, including data-section and metadata
+    /**
+     * @brief GetBlockSize
+     * @return Size of the block, including data-section and metadata
      */
     K_ADDR GetBlockSize(void);
 
-    /*!
-     * \brief SetArenaIndex
-     * \param u8List_ Arena-list index to associate this block with
+    /**
+     * @brief SetArenaIndex
+     * @param u8List_ Arena-list index to associate this block with
      */
     void SetArenaIndex(uint8_t u8List_);
 
-    /*!
-     * \brief GetArenaIndex
-     * \return Return the arena-index associated with this block
+    /**
+     * @brief GetArenaIndex
+     * @return Return the arena-index associated with this block
      */
     uint8_t GetArenaIndex(void);
 
-    /*!
-     * \brief SetCookie
-     * \param uCookie_ Cookie used to tag the object's state
+    /**
+     * @brief SetCookie
+     * @param uCookie_ Cookie used to tag the object's state
      */
     void SetCookie(K_ADDR uCookie_) { m_uCookie = uCookie_; }
-    /*!
-     * \brief GetCookie
-     * \return Return the object's current state-cookie
+    /**
+     * @brief GetCookie
+     * @return Return the object's current state-cookie
      */
     K_ADDR GetCookie(void) { return m_uCookie; }
-    /*!
-     * \brief GetLeftSibling
-     * \return Pointer to the the HeapBlock object immediately
+    /**
+     * @brief GetLeftSibling
+     * @return Pointer to the the HeapBlock object immediately
      *         preceding this object in memory, or null if this
      *         is the leftmost block in the heap.
      */
     HeapBlock* GetLeftSibling(void) { return m_pclLeft; }
-    /*!
-     * \brief GetRightSibling
-     * \return Pointer to the the HeapBlock object immediately
+    /**
+     * @brief GetRightSibling
+     * @return Pointer to the the HeapBlock object immediately
      *         following this object in memory, or null if this
      *         is the rightmost block in the heap.
      */
     HeapBlock* GetRightSibling(void) { return m_pclRight; }
-    /*!
-     * \brief SetRightSibling
-     * \param pclRight_ Pointer to the HeapBlock that immediately
+    /**
+     * @brief SetRightSibling
+     * @param pclRight_ Pointer to the HeapBlock that immediately
      *        follows this object in memory.
      */
     void SetRightSibling(HeapBlock* pclRight_) { m_pclRight = pclRight_; }
-    /*!
-     * \brief SetLeftSibling
-     * \param pclRight_ Pointer to the HeapBlock that immediately
+    /**
+     * @brief SetLeftSibling
+     * @param pclRight_ Pointer to the HeapBlock that immediately
      *        precedes this object in memory.
      */
     void SetLeftSibling(HeapBlock* pclLeft_) { m_pclLeft = pclLeft_; }
+
 private:
-    /*!
-     * \brief Init
+    /**
+     * @brief Init
      *
      * used as a pseudo-constructor function, as we create HeapBlocks
      * dynamically from an existing, unmanaged blob of memory.  We could
@@ -213,13 +215,13 @@ private:
         LinkListNode::ClearNode();
     }
 
-    /*!
-     * \brief SetDataSize
+    /**
+     * @brief SetDataSize
      *
      * Set the data-size of this HeapBlock object (in bytes) to the
      * specified value.
      *
-     * \param uBlockSize_ Size of the data portion of this allocatable
+     * @param uBlockSize_ Size of the data portion of this allocatable
      *        object (in bytes).
      */
     void SetDataSize(K_ADDR uBlockSize);
@@ -232,4 +234,4 @@ private:
     HeapBlock* m_pclRight;
     HeapBlock* m_pclLeft;
 };
-} //namespace Mark3
+} // namespace Mark3

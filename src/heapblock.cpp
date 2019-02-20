@@ -11,15 +11,16 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 ===========================================================================*/
-/*!
+/**
 
-    \file   heapblock.cpp
+    @file   heapblock.cpp
 
-    \brief  Metadata object used to manage a heap allocation
+    @brief  Metadata object used to manage a heap allocation
 */
 
 #include "heapblock.h"
-namespace Mark3 {
+namespace Mark3
+{
 //---------------------------------------------------------------------------
 void HeapBlock::RootInit(K_ADDR usize_)
 {
@@ -44,8 +45,8 @@ HeapBlock* HeapBlock::Split(K_ADDR usize_)
 
     m_uDataSize = ROUND_UP(usize_);
 
-    K_ADDR     uNewAddr      = (K_ADDR)this + u32eftBlockSize;
-    HeapBlock* pclRightBlock = (HeapBlock*)uNewAddr;
+    auto  uNewAddr      = (K_ADDR)this + u32eftBlockSize;
+    auto* pclRightBlock = reinterpret_cast<HeapBlock*>(uNewAddr);
 
     pclRightBlock->Init();
     pclRightBlock->SetDataSize(uRightBlockSize - sizeof(HeapBlock));
@@ -67,9 +68,7 @@ HeapBlock* HeapBlock::Split(K_ADDR usize_)
 // Merge this block with RIGHT neighbor.
 void HeapBlock::Coalesce(void)
 {
-    HeapBlock* pclTemp;
-
-    pclTemp = GetRightSibling();
+    auto* pclTemp = GetRightSibling();
     // Add the size of this object to the left object.
     SetDataSize(GetDataSize() + pclTemp->GetBlockSize());
 
@@ -83,9 +82,9 @@ void HeapBlock::Coalesce(void)
 //---------------------------------------------------------------------------
 void* HeapBlock::GetDataPointer(void)
 {
-    K_ADDR uAddr = (K_ADDR)this;
+    auto uAddr = reinterpret_cast<K_ADDR>(this);
     uAddr += sizeof(HeapBlock);
-    return (void*)uAddr;
+    return reinterpret_cast<void*>(uAddr);
 }
 
 //---------------------------------------------------------------------------
@@ -117,4 +116,4 @@ void HeapBlock::SetDataSize(K_ADDR uBlockSize)
 {
     m_uDataSize = uBlockSize;
 }
-} //namespace Mark3
+} // namespace Mark3

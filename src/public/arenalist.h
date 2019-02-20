@@ -11,11 +11,11 @@
 Copyright (c) 2012 - 2018 m0slevin, all rights reserved.
 See license.txt for more information
 ===========================================================================*/
-/*!
+/**
 
-    \file   arenalist.h
+    @file   arenalist.h
 
-    \brief  Data structure used to manage list of available heap blocks.
+    @brief  Data structure used to manage list of available heap blocks.
 */
 #pragma once
 
@@ -26,10 +26,9 @@ See license.txt for more information
 
 namespace Mark3
 {
-
 //---------------------------------------------------------------------------
-/*!
- * \brief The ArenaList class
+/**
+ * @brief The ArenaList class
  *
  * This clas keeps track of a doubly-linked-list of HeapBlock objects which
  * all have a size greater than the initialized value.  In this way, when
@@ -42,12 +41,12 @@ class ArenaList : private DoubleLinkList
 {
 public:
     void* operator new(size_t sz, void* pv) { return (ArenaList*)pv; };
-    /*!
-     * \brief Init
+    /**
+     * @brief Init
      *
      * Initialize the member data and objects inherited by this class
      *
-     * \param uBlockSize_ Minimum data size for blocks.
+     * @param uBlockSize_ Minimum data size for blocks.
      */
     void Init(K_ADDR uBlockSize_)
     {
@@ -57,17 +56,17 @@ public:
         DoubleLinkList::Init();
     }
 
-    /*!
-     * \brief GetBlockSize
-     * \return The minimum block size for objects in this structure
+    /**
+     * @brief GetBlockSize
+     * @return The minimum block size for objects in this structure
      */
     K_ADDR GetBlockSize(void) { return m_uBlockSize; }
-    /*!
-     * \brief PushBlock
+    /**
+     * @brief PushBlock
      *
      * Add a vacant HeapBlock to the beginning of the list
      *
-     * \param pclBlock_ Pointer of the block to add
+     * @param pclBlock_ Pointer of the block to add
      */
     void PushBlock(HeapBlock* pclBlock_)
     {
@@ -77,13 +76,13 @@ public:
         }
     }
 
-    /*!
-     * \brief PopBlock
+    /**
+     * @brief PopBlock
      *
      * Remove the first object in the list, and return its pointer to
      * the caller
      *
-     * \return Pointer to the first HeapBlock object in the list, or
+     * @return Pointer to the first HeapBlock object in the list, or
      *         0 on error (list exhausted).
      */
     HeapBlock* PopBlock(void)
@@ -99,12 +98,12 @@ public:
         return 0;
     }
 
-    /*!
-     * \brief RemoveBlock
+    /**
+     * @brief RemoveBlock
      *
      * Remove a given object (which exists in the list) from the list.
      *
-     * \param pclBlock_ Pointer of the block to remove
+     * @param pclBlock_ Pointer of the block to remove
      */
     void RemoveBlock(HeapBlock* pclBlock_)
     {
@@ -114,13 +113,14 @@ public:
         }
     }
 
-    /*!
-     * \brief GetBlockCount
-     * \return The current number of available allocations in this list.
+    /**
+     * @brief GetBlockCount
+     * @return The current number of available allocations in this list.
      */
     uint32_t GetBlockCount(void) { return m_u16Count; }
+
 private:
     K_ADDR   m_uBlockSize; //!< The minimum data-size for blocks held in this arena
     uint16_t m_u16Count;   //!< Current number of available blocks in this list
 };
-} //namespace Mark3
+} // namespace Mark3
